@@ -10,6 +10,7 @@ class ListBlenderExtensions:
         self.toggleAuthor = False
         self.toggleVersionNum = True
         self.toggleCategory = False
+        self.toggleWebsite = False
         self.toggleShowOnlyEnabled = True
     
     def setFileDirectory(self, filepath:str):
