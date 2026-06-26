@@ -21,3 +21,5 @@ Supported formats:
 3. Under **Show Additional Info**, tick the details you want included for each extension.
 4. Under **Export Options**, choose whether to list only enabled extensions and pick your export format.
 5. Click **Export**. Choose a folder and filename in the file browser, then confirm. The file is written to the location you selected.
+
+![usage gif](./img/example.gif)
