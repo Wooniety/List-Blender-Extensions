@@ -51,9 +51,6 @@ class LISTEXTENSIONS_OT_exportExtensions(bpy.types.Operator):
 
 		self.extension_utils.setToggleEnabled(self.props.toggle_enabled)
 
-		# TODO figure out of there's a way to differentiate blender default plugins and user installed (idts)
-		# self.extension_utils.setToggleDefaultExtensions(self.props.toggle_default_extensions)
-
 		self.extension_utils.loadListOfAddons()
 
 		self.extension_utils.getFileContents(self.props.export_format.lower())
@@ -92,9 +89,6 @@ class LISTEXTENSIONS_PT_Panel(bpy.types.Panel):
 		layout.label(text="Export Options")
 		layout.prop(props, "toggle_enabled")
 		layout.prop(props, "export_format")
-
-		# TODO figure out of there's a way to differentiate blender default plugins and user installed (idts)
-		# layout.prop(props, "toggle_default_extensions")
 
 		layout.operator("list_extensions.export_extensions")
 
