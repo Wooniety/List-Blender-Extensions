@@ -1,43 +1,69 @@
 import bpy
-# from list_extensions.py import ListBlenderExtensions
+# from list_extensions import ListBlenderExtensions
 
-class LISTEXTENSIONS_(bpy.types.Operator):
-    bl_idname = "list_extensions.export_extensions"
-    bl_label = "Export"
+class LISTEXTENSIONS_Options(bpy.types.PropertyGroup):
+	toggle_author: bpy.props.BoolProperty(name="Author", default=True)
+	toggle_version_num: bpy.props.BoolProperty(name="Version Number", default=True)
+	toggle_category: bpy.props.BoolProperty(name="Category", default=False)
+	toggle_website: bpy.props.BoolProperty(name="Website", default=False)
 
-    def execute(self, context):
-        return {'FINISHED'}
+	toggle_enabled: bpy.props.BoolProperty(name="Only enabled extensions", default=False)
+	toggle_default_extensions: bpy.props.BoolProperty(name="Include default extensions", default=False)
+
+	export_format: bpy.props.EnumProperty(
+		name="Format",
+		description="Export file format",
+		items=[
+			('TXT', "Text", "Export as a plain text file"),
+			('CSV', "CSV", "Export as comma-separated values"),
+			('JSON', "JSON", "Export as JSON"),
+		],
+		default='TXT',
+	)
 
 class LISTEXTENSIONS_OT_exportExtensions(bpy.types.Operator):
-    bl_idname = "list_extensions.export_extensions"
-    bl_label = "Export"
+	bl_idname = "list_extensions.export_extensions"
+	bl_label = "Export"
 
-    def execute(self, context):
-        return {'FINISHED'}
+	def execute(self, context):
+		return {'FINISHED'}
 
 class LISTEXTENSIONS_PT_Panel(bpy.types.Panel):
-    bl_label = 'List Extensions'
-    bl_idname = 'LISTEXTENSIONS_PT_Panel'
-    bl_category = "Tool"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+	bl_label = 'List Extensions'
+	bl_idname = 'LISTEXTENSIONS_PT_Panel'
+	bl_category = "Tool"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
 
-    def draw(self, context):
-        layout = self.layout
-        layout.label(text="Show Additional Info")
-        layout.separator()
-        layout.prop(context.object, "list_extensions.toggle_author", text="Author")
-        layout.prop(context.object, "list_extensions.toggle_vernum", text="Version No.")
-        layout.prop(context.object, "list_extensions.toggle_category", text="Category")
-        layout.prop(context.object, "list_extensions.toggle_website", text="Website")
-        layout.label(text="Export As")
-        layout.seperator(context.object, "Filter Only Enabled Extensions")
-        layout.operator("list_extensions.export_extensions")
+	def draw(self, context):
+		layout = self.layout
+		props = context.scene.list_extensions_props
+
+		layout.label(text="Show Additional Info")
+		layout.prop(props, "toggle_author")
+		layout.prop(props, "toggle_version_num")
+		layout.prop(props, "toggle_category")
+		layout.prop(props, "toggle_website")
+
+		layout.separator()
+
+		layout.label(text="Export Options")
+		layout.prop(props, "toggle_default_extensions")
+		layout.prop(props, "export_format")
+		layout.prop(props, "toggle_category")
+
+		layout.operator("list_extensions.export_extensions")
 
 def register():
-    bpy.utils.register_class(LISTEXTENSIONS_OT_exportExtensions)
-    bpy.utils.register_class(LISTEXTENSIONS_PT_Panel)
+	bpy.utils.register_class(LISTEXTENSIONS_Options)
+	bpy.utils.register_class(LISTEXTENSIONS_OT_exportExtensions)
+	bpy.utils.register_class(LISTEXTENSIONS_PT_Panel)
+	bpy.types.Scene.list_extensions_props = bpy.props.PointerProperty(
+		type=LISTEXTENSIONS_Options
+	)
 
 def unregister():
-    bpy.utils.unregister_class(LISTEXTENSIONS_PT_Panel)
-    bpy.utils.unregister_class(LISTEXTENSIONS_OT_exportExtensions)
+	del bpy.types.Scene.list_extensions_props
+	bpy.utils.unregister_class(LISTEXTENSIONS_PT_Panel)
+	bpy.utils.unregister_class(LISTEXTENSIONS_OT_exportExtensions)
+	bpy.utils.unregister_class(LISTEXTENSIONS_Options)
