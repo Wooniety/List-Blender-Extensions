@@ -1,5 +1,6 @@
 import bpy
 import addon_utils
+import csv, io, json
 from datetime import datetime
 
 class LISTBLENDEREXTENSIONS_Utilities:
@@ -7,9 +8,9 @@ class LISTBLENDEREXTENSIONS_Utilities:
 		self.addons = []
 		self.addonsFile = ""
 
-		self.file = ""
-		self.filetype = ""
 		self.filename = ""
+		self.filetype = ""
+		self.filecontents = ""
 
 		self.toggleAuthor = True
 		self.toggleExtensionDesc = True
@@ -64,45 +65,77 @@ class LISTBLENDEREXTENSIONS_Utilities:
 
 	def loadListOfAddons(self):
 		self.addons = []
-		for addon in addon_utils.modules():
-			# default items
+		for module in addon_utils.modules():
+			info = addon_utils.module_bl_info(module)
+			if info is None:
+				continue
+
 			filtered_details = {
-				"Name": addon["name"]
+				"Name": info.get("name", "")
 			}
 
 			if self.toggleAuthor:
-				filtered_details['Author'] = addon['author']
-			
+				filtered_details['Author'] = info.get('author', "")
 			if self.toggleCategory:
-				filtered_details['Category'] = addon['category']
-			
+				filtered_details['Category'] = info.get('category', "")
 			if self.toggleExtensionDesc:
-				filtered_details['Description'] = addon['description']
-
+				filtered_details['Description'] = info.get('description', "")
 			if self.toggleExtensionVer:
-				filtered_details['Version'] = ".".join(addon['version'])
-
+				version = info.get('version', ())
+				filtered_details['Version'] = ".".join(str(v) for v in version)
 			if self.toggleBlenderVer:
-				filtered_details['Blender Version'] = ".".join(addon['blender'])
-
-			if self.toggleExtensionDesc:
-				filtered_details['Website'] = addon['doc_url']
+				blender = info.get('blender', ())
+				filtered_details['Blender Version'] = ".".join(str(v) for v in blender)
+			if self.toggleWebsite:
+				filtered_details['Website'] = info.get('doc_url', "")
 
 			self.addons.append(filtered_details)
 		return self.addons
-		
+
 	def printAddonList(self):
 		print(type(self.addons[0]))
 	
+	def getFileContents(self, filetype:str):
+		return self.filecontents
+
 	def exportAddonListToCSV(self):
-		self.setFiletype("csv")
-		pass
-	
-	def exportAddonListToCSV(self):
-		pass
-	
+		# if empty
+		if len(self.addons)==0:
+			self.filecontents = ""
+			return self.filecontents
+
+		fieldnames = list(self.addons[0].keys())
+		output = io.StringIO()
+
+		# csv writing
+		writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+		writer.writeheader()
+		writer.writerows(self.addons)
+
+		self.filecontents = output.getvalue()
+		return self.filecontents
+
 	def exportAddonListToTXT(self):
-		pass
-	
-	def saveFile(self):
-		pass
+		lines = []
+		for addon in self.addons:
+			lines.append(addon.get("Name", ""))
+			for key, value in addon.items():
+				if key == "Name":
+					continue
+				lines.append(f"    {key}: {value}")
+			lines.append("")
+		self.filecontents = "\n".join(lines)
+		return self.filecontents
+
+	def exportAddonListToJSON(self):
+		self.filecontents = json.dumps(self.addons, indent=2)
+		return self.filecontents
+
+	def getFileContents(self, filetype:str):
+		if filetype == "csv":
+			return self.exportAddonListToCSV()
+		elif filetype == "txt":
+			return self.exportAddonListToTXT()
+		elif filetype == "json":
+			return self.exportAddonListToJSON()
+		return ""

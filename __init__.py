@@ -1,12 +1,11 @@
 import bpy
-import os
 from .list_extensions import LISTBLENDEREXTENSIONS_Utilities
 
 class LISTEXTENSIONS_Options(bpy.types.PropertyGroup):
 	toggle_author: bpy.props.BoolProperty(name="Author", default=True)
-	toggle_description: bpy.props.BoolProperty(name="Description", default=True)
+	toggle_description: bpy.props.BoolProperty(name="Description", default=False)
 	toggle_extensions_version_num: bpy.props.BoolProperty(name="Extension Version Number", default=True)
-	toggle_blender_version_num: bpy.props.BoolProperty(name="Blender Version Number", default=True)
+	toggle_blender_version_num: bpy.props.BoolProperty(name="Blender Version Number", default=False)
 	toggle_category: bpy.props.BoolProperty(name="Category", default=False)
 	toggle_website: bpy.props.BoolProperty(name="Website", default=False)
 
@@ -43,19 +42,29 @@ class LISTEXTENSIONS_OT_exportExtensions(bpy.types.Operator):
 
 	def execute(self, context):
 		# Set filters
-		self.props = context.scene.list_extensions_props
 		self.extension_utils.setToggleAuthor(self.props.toggle_author)
-		self.extension_utils.setToggleExtensionVer(self.props.toggle_version_num)
+		self.extension_utils.setToggleExtensionDesc(self.props.toggle_description)
+		self.extension_utils.setToggleExtensionVer(self.props.toggle_extensions_version_num)
+		self.extension_utils.setToggleBlenderVer(self.props.toggle_blender_version_num)
 		self.extension_utils.setToggleCategory(self.props.toggle_category)
 		self.extension_utils.setToggleWebsite(self.props.toggle_website)
-		self.extension_utils.setToggleEnabled(self.props.toggle_enabled)
-		self.extension_utils.setToggleDefaultExtensions(self.props.toggle_default_extensions)
-		self.extension_utils.setFiletype(self.props.export_format.lower())
+
+		# self.extension_utils.setToggleEnabled(self.props.toggle_enabled)
+		# self.extension_utils.setToggleDefaultExtensions(self.props.toggle_default_extensions)
 
 		self.extension_utils.loadListOfAddons()
 
-		self.extension_utils.printAddonList()
-		return {'FINISHED'}
+		self.extension_utils.getFileContents(self.props.export_format.lower())
+
+		try:
+			with open(self.filepath, "w", encoding="utf-8") as f:
+				f.write(self.extension_utils.filecontents)
+		except OSError as e:
+			self.report({'ERROR'}, f"Could not write file: {e}")
+			return {'CANCELLED'}
+
+		self.report({'INFO'}, f"Exported to {self.filepath}")
+		return {'FINISHED'}	
 
 class LISTEXTENSIONS_PT_Panel(bpy.types.Panel):
 	bl_label = 'List Extensions'
