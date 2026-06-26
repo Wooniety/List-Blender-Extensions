@@ -19,6 +19,9 @@ class LISTBLENDEREXTENSIONS_Utilities:
 		self.toggleWebsite = True
 		self.toggleCategory = True
 
+		self.toggleEnabled = True
+		self.toggleDefaultExtensions = True
+
 	def getFiletype(self):
 		return self.filetype
 
@@ -63,9 +66,26 @@ class LISTBLENDEREXTENSIONS_Utilities:
 		self.toggleCategory = value
 		return self.toggleCategory
 
+	def setToggleEnabled(self, value:bool):
+		self.toggleEnabled = value
+		return self.toggleEnabled
+
+	def setToggleDefaultExtensions(self, value:bool):
+		self.toggleDefaultExtensions = value
+		return self.toggleDefaultExtensions
+
 	def loadListOfAddons(self):
 		self.addons = []
+
 		for module in addon_utils.modules():
+			module_name = module.__name__
+			module_file = getattr(module, "__file__", "") or ""
+
+			if self.toggleEnabled:
+				if module_name not in bpy.context.preferences.addons:
+					continue
+
+			# make sure theres info to pull
 			info = addon_utils.module_bl_info(module)
 			if info is None:
 				continue
@@ -108,7 +128,7 @@ class LISTBLENDEREXTENSIONS_Utilities:
 		output = io.StringIO()
 
 		# csv writing
-		writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+		writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore", lineterminator="\n")
 		writer.writeheader()
 		writer.writerows(self.addons)
 
